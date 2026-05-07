@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.0.0...v1.1.0) (2026-05-07)
+
+
+### Features
+
+* add document deduplication and incremental re-indexing ([29e5a59](https://github.com/gorizond/mcp-server-ragdocs/commit/29e5a597ccf02c6191d66c44d46a773a44220aaf))
+
 # 1.0.0 (2026-05-07)
 
 

@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.1.0...v1.1.1) (2026-05-07)
+
+
+### Bug Fixes
+
+* sync Playwright server version with client (v1.59.1) to fix WebSocket error ([e2167a0](https://github.com/gorizond/mcp-server-ragdocs/commit/e2167a006d25e28cd5a1a68e2f2710f58cf44403))
+
 # [1.1.0](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.0.0...v1.1.0) (2026-05-07)
 
 

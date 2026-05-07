@@ -7,6 +7,36 @@
 
 An MCP server implementation that provides tools for retrieving and processing documentation through vector search, enabling AI assistants to augment their responses with relevant documentation context.
 
+## Upgrading from v1.0.0
+
+> ⚠️ **Important migration note for users upgrading from v1.0.0**
+
+v1.0.0 used **random UUIDs** as point IDs in Qdrant. This meant every call to `run_queue` for the same URL would create **duplicate points** — the database grew without bound and search results became noisy.
+
+Starting with this version, point IDs are **deterministic** (SHA256-based UUID v8 from `url + chunk_index`). Qdrant `upsert` now updates existing points instead of inserting duplicates.
+
+**However**, existing points created by v1.0.0 with random IDs remain in the collection. They are not automatically removed.
+
+### Recommended upgrade path
+
+1. **Delete the Qdrant collection** (all points will be lost):
+
+   ```bash
+   curl -X DELETE "http://localhost:6333/collections/rag_docs"
+   ```
+
+2. **Re-index all your documentation URLs** from scratch by adding them again via `add_documentation` / `extract_urls` and running `run_queue`.
+
+### Alternative: manual cleanup
+
+If you cannot afford to delete the entire collection, you can manually identify and remove duplicate points via the Qdrant dashboard (http://localhost:6333/dashboard) or Qdrant Cloud console. Look for points with duplicate `source_url` values.
+
+### About `content_hashes.json`
+
+This version introduces a new sidecar file `content_hashes.json` that stores SHA256 hashes of indexed page content. This file is created automatically on first run and enables content-change detection for incremental re-indexing (skipping unchanged pages). It is excluded from version control via `.gitignore`.
+
+> **Note**: Automatic migration of old random-ID points is out of scope. The recommended approach is a clean re-index.
+
 ## Table of Contents
 
 - [Usage](#usage)

@@ -194,6 +194,16 @@ export class ApiClient {
           replication_factor: 2
         })
       }
+
+      // Create payload index on source_url for efficient per-URL queries
+      try {
+        await this.qdrantClient.createPayloadIndex(COLLECTION_NAME, {
+          field_name: 'source_url',
+          field_schema: 'keyword' as any,
+        });
+      } catch {
+        // Index may already exist — Qdrant is idempotent for this
+      }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('unauthorized')) {

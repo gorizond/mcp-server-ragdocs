@@ -17,6 +17,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
     "types": ["node", "mocha"],
   },
   "include": ["src/**/*", "test/**/*"],

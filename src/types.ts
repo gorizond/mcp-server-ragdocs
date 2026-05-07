@@ -5,6 +5,12 @@ export interface DocumentChunk {
   timestamp: string
 }
 
+export interface IndexedDocumentChunk extends DocumentChunk {
+  source_url: string
+  chunk_index: number
+  content_hash: string
+}
+
 export interface DocumentPayload extends DocumentChunk {
   _type: 'DocumentChunk'
   [key: string]: unknown
@@ -33,6 +39,9 @@ export interface ToolDefinition {
     required: string[]
   }
 }
+
+// Re-export dedup types for convenience
+export type { ContentHashEntry, ContentHashStore } from './dedup.js'
 
 export interface McpToolResponse {
   content: Array<{

@@ -36,3 +36,6 @@ coverage/
 INTERNAL.TXT
 queue.txt
 MCPguide.txt
+
+# Content hash store for document deduplication
+content_hashes.json

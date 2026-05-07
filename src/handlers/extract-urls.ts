@@ -5,6 +5,7 @@ import * as cheerio from 'cheerio'
 import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { existsSync, readFileSync } from 'node:fs'
 
 // Get current directory in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -60,18 +61,40 @@ export class ExtractUrlsHandler extends BaseHandler {
             await fs.writeFile(QUEUE_FILE, '')
           }
 
-          // Append URLs to queue
-          const urlsToAdd =
-            urlArray.join('\n') + (urlArray.length > 0 ? '\n' : '')
-          await fs.appendFile(QUEUE_FILE, urlsToAdd)
+          // Phase 6 — Queue Dedup (T019): load existing queue to filter duplicates
+          const existingQueue = existsSync(QUEUE_FILE)
+            ? readFileSync(QUEUE_FILE, 'utf-8').split('\n').filter(u => u.trim())
+            : []
+          const existingSet = new Set(existingQueue)
 
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Successfully added ${urlArray.length} URLs to the queue`
-              }
-            ]
+          // T020: Filter duplicates before append
+          const newUrls = urlArray.filter(u => !existingSet.has(u))
+          if (newUrls.length > 0) {
+            const urlsToAdd = newUrls.join('\n') + '\n'
+            await fs.appendFile(QUEUE_FILE, urlsToAdd)
+
+            // T021: Log skipped duplicates for debugging
+            if (newUrls.length < urlArray.length) {
+              console.log(`[RAGDocs] Queue dedup: skipped ${urlArray.length - newUrls.length} duplicate URLs`)
+            }
+
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Added ${newUrls.length} URLs to queue (${urlArray.length - newUrls.length} duplicates skipped)`
+                }
+              ]
+            }
+          } else {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: 'All URLs already in queue, nothing added'
+                }
+              ]
+            }
           }
         } catch (error) {
           return {

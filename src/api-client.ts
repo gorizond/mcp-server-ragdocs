@@ -12,6 +12,18 @@ const QDRANT_API_KEY = process.env['QDRANT_API_KEY']
 const EMBEDDINGS_PROVIDER = process.env['EMBEDDINGS_PROVIDER'] || 'ollama'
 const OLLAMA_BASE_URL = process.env['OLLAMA_BASE_URL']
 const PLAYWRIGHT_WS_ENDPOINT = process.env['PLAYWRIGHT_WS_ENDPOINT']
+const EMBEDDING_MODEL = process.env['EMBEDDING_MODEL']
+const OPENAI_BASE_URL = process.env['OPENAI_BASE_URL']
+const VECTOR_SIZE = (() => {
+  const raw = process.env['VECTOR_SIZE']
+  if (raw === undefined) return undefined
+  const parsed = parseInt(raw)
+  if (isNaN(parsed)) {
+    console.warn('[RAGDocs] VECTOR_SIZE env var is not a valid number, ignoring')
+    return undefined
+  }
+  return parsed
+})()
 
 if (!QDRANT_URL) {
   throw new Error('QDRANT_URL environment variable is required')
@@ -46,8 +58,12 @@ export class ApiClient {
     // Initialize OpenAI client if API key is provided
     if (EMBEDDINGS_PROVIDER === 'openai' && OPENAI_API_KEY) {
       this.openaiClient = new OpenAI({
-        apiKey: OPENAI_API_KEY
+        apiKey: OPENAI_API_KEY,
+        baseURL: OPENAI_BASE_URL
       })
+      if (OPENAI_BASE_URL) {
+        console.error('[RAGDocs] OpenAI client configured with custom base URL:', OPENAI_BASE_URL)
+      }
     }
     // Initialize OpenAI client if API key is provided
     if (EMBEDDINGS_PROVIDER === 'ollama') {
@@ -102,8 +118,9 @@ export class ApiClient {
     if (this.openaiClient) {
       try {
         const response = await this.openaiClient.embeddings.create({
-          model: 'text-embedding-ada-002',
-          input: text
+          model: EMBEDDING_MODEL || 'text-embedding-ada-002',
+          input: text,
+          ...(OPENAI_BASE_URL ? { encoding_format: 'float' } : {})
         })
         return response.data?.[0]?.embedding || []
       } catch (error) {
@@ -117,7 +134,7 @@ export class ApiClient {
     if (this.ollamaClient) {
       try {
         const response = await this.ollamaClient.embeddings({
-          model: 'nomic-embed-text',
+          model: EMBEDDING_MODEL || 'nomic-embed-text',
           prompt: text
         })
         return response.embedding
@@ -149,10 +166,24 @@ export class ApiClient {
         (c) => c.name === COLLECTION_NAME
       )
 
+      const defaultSize = EMBEDDINGS_PROVIDER === 'openai' ? 1536 : 768
+      const vectorSize = VECTOR_SIZE ?? defaultSize
+
+      if (exists) {
+        const existing = collections.collections.find(
+          (c) => c.name === COLLECTION_NAME
+        ) as any
+        if (existing?.config?.params?.vectors?.size !== vectorSize) {
+          console.warn(
+            `[RAGDocs] Existing collection '${COLLECTION_NAME}' vector size (${existing?.config?.params?.vectors?.size}) differs from configured VECTOR_SIZE (${vectorSize}). Manual collection migration or VECTOR_SIZE change may be needed.`
+          )
+        }
+      }
+
       if (!exists) {
         await this.qdrantClient.createCollection(COLLECTION_NAME, {
           vectors: {
-            size: EMBEDDINGS_PROVIDER === 'openai' ? 1536 : 768, // OpenAI ada-002 (1536) or Ollama nomic-embed-text (768)
+            size: vectorSize,
             distance: 'Cosine'
           },
           // Add optimized settings for cloud deployment

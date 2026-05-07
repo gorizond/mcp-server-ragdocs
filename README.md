@@ -1,8 +1,8 @@
 # MCP-server-ragdocs
-[![Node.js Package](https://github.com/sanderkooger/mcp-server-ragdocs/actions/workflows/release.yml/badge.svg)](https://github.com/sanderkooger/mcp-server-ragdocs/actions/workflows/release.yml)
-![NPM Downloads](https://img.shields.io/npm/dy/%40sanderkooger%2Fmcp-server-ragdocs)
-[![Version](https://img.shields.io/npm/v/@sanderkooger/mcp-server-ragdocs)](https://npmjs.com/package/@sanderkooger/mcp-server-ragdocs)
-[![codecov](https://codecov.io/gh/sanderkooger/mcp-server-ragdocs/branch/main/graph/badge.svg)](https://codecov.io/gh/sanderkooger/mcp-server-ragdocs)
+[![Node.js Package](https://github.com/gorizond/mcp-server-ragdocs/actions/workflows/release.yml/badge.svg)](https://github.com/gorizond/mcp-server-ragdocs/actions/workflows/release.yml)
+![NPM Downloads](https://img.shields.io/npm/dy/%40gorizond%2Fmcp-server-ragdocs)
+[![Version](https://img.shields.io/npm/v/@gorizond/mcp-server-ragdocs)](https://npmjs.com/package/@gorizond/mcp-server-ragdocs)
+[![codecov](https://codecov.io/gh/gorizond/mcp-server-ragdocs/branch/main/graph/badge.svg)](https://codecov.io/gh/gorizond/mcp-server-ragdocs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An MCP server implementation that provides tools for retrieving and processing documentation through vector search, enabling AI assistants to augment their responses with relevant documentation context.
@@ -50,7 +50,7 @@ The RAG Documentation tool is designed for:
   "mcpServers": {
     "rag-docs": {
       "command": "npx",
-      "args": ["-y", "@sanderkooger/mcp-server-ragdocs"],
+      "args": ["-y", "@gorizond/mcp-server-ragdocs"],
       "env": {
         "EMBEDDINGS_PROVIDER": "ollama",
         "QDRANT_URL": "your-qdrant-url",
@@ -72,7 +72,7 @@ Add this to your `claude_desktop_config.json`:
   "mcpServers": {
     "rag-docs-openai": {
       "command": "npx",
-      "args": ["-y", "@sanderkooger/mcp-server-ragdocs"],
+      "args": ["-y", "@gorizond/mcp-server-ragdocs"],
       "env": {
         "EMBEDDINGS_PROVIDER": "openai",
         "OPENAI_API_KEY": "your-openai-key-here",
@@ -91,7 +91,7 @@ Add this to your `claude_desktop_config.json`:
   "mcpServers": {
     "rag-docs-ollama": {
       "command": "npx",
-      "args": ["-y", "@sanderkooger/mcp-server-ragdocs"],
+      "args": ["-y", "@gorizond/mcp-server-ragdocs"],
       "env": {
         "EMBEDDINGS_PROVIDER": "ollama",
         "OLLAMA_BASE_URL": "http://localhost:11434",
@@ -102,6 +102,31 @@ Add this to your `claude_desktop_config.json`:
   }
 }
 ```
+
+### LM Studio Configuration
+
+Configure the server to use LM Studio with nomic-embed-text-v1.5:
+
+```json
+{
+  "mcpServers": {
+    "rag-docs-lmstudio": {
+      "command": "npx",
+      "args": ["-y", "@gorizond/mcp-server-ragdocs"],
+      "env": {
+        "EMBEDDINGS_PROVIDER": "openai",
+        "OPENAI_BASE_URL": "http://localhost:1234/v1",
+        "OPENAI_API_KEY": "lm-studio",
+        "EMBEDDING_MODEL": "text-embedding-nomic-embed-text-v1.5",
+        "VECTOR_SIZE": "768",
+        "QDRANT_URL": "http://localhost:6333"
+      }
+    }
+  }
+}
+```
+
+LM Studio must be running with the embedding model loaded. The `OPENAI_API_KEY` can be any non-empty string (it is ignored by LM Studio but required by the library). Use `GET /v1/models` on LM Studio to find the exact model identifier for `EMBEDDING_MODEL`.
 
 ### Ollama run from this codebase
 ```
@@ -140,13 +165,16 @@ Add this to your `claude_desktop_config.json`:
 | `QDRANT_URL`            | All           | `http://localhost:6333`  | Qdrant endpoint URL           |
 | `QDRANT_API_KEY`        | Cloud Qdrant  | -                        | From Qdrant Cloud console     |
 | `PLAYWRIGHT_WS_ENDPOINT`| Playwright Remote | -                      | WebSocket endpoint for remote Playwright server (e.g., `ws://localhost:3000/`) |
+| `EMBEDDING_MODEL`       | All           | provider-dependent       | Override default embedding model |
+| `OPENAI_BASE_URL`       | OpenAI        | -                        | Custom OpenAI-compatible endpoint URL (e.g., LM Studio) |
+| `VECTOR_SIZE`           | All           | provider-dependent       | Override default vector dimension (openai=1536, ollama=768) |
 
 
 ### Local Deployment
 
 The repository includes Docker Compose configuration for local development:
 
-[Docker Compose Download](https://raw.githubusercontent.com/sanderkooger/mcp-server-ragdocs/main/docker-compose.yml)
+[Docker Compose Download](https://raw.githubusercontent.com/gorizond/mcp-server-ragdocs/main/docker-compose.yml)
 
 ```bash
 docker compose up -d

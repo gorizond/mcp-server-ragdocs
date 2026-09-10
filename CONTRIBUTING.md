@@ -247,3 +247,43 @@ This project uses semantic-release for automated version management:
 - Patch versions for `fix` commits
 - Minor versions for `feat` commits
 - Major versions for breaking changes (`BREAKING CHANGE` in footer)
+
+### How a release works
+
+1. A commit with a release type (`fix:`, `feat:`, or breaking change) is merged to `main`.
+2. The `Release` workflow (`.github/workflows/release.yml`) runs `npx semantic-release`.
+3. semantic-release determines the next version, updates `package.json` and `CHANGELOG.md`,
+   creates a git tag `v<version>`, publishes the package to npm, and creates a GitHub Release.
+
+### Publishing to npm (OIDC Trusted Publisher)
+
+The package is published to npm via **OIDC Trusted Publisher** — no npm token is stored
+in GitHub Actions secrets. npm trusts the OIDC identity of the GitHub Actions workflow
+(`id-token: write` permission in the `Release` job).
+
+The Trusted Publisher must be configured on npm for the package
+(`@gorizond/mcp-server-ragdocs` → Settings → Access → Trusted Publisher):
+
+- Publisher: **GitHub Actions**
+- Repository: **gorizond/mcp-server-ragdocs**
+- Workflow filename: **release.yml** (exact match, including the `.yml` extension)
+
+If the OIDC exchange fails with `404 OIDC token exchange error - package not found`,
+the Trusted Publisher configuration does not match the workflow — verify the three
+fields above.
+
+### Verifying a release
+
+```bash
+npm view @gorizond/mcp-server-ragdocs versions
+npm view @gorizond/mcp-server-ragdocs dist-tags.latest
+gh release list -R gorizond/mcp-server-ragdocs
+```
+
+The published version must match the git tag and the `version` field in `package.json`.
+
+### Security note
+
+Do not store the npm token as a GitHub **variable** (variables are not masked and are
+visible to anyone with read access to the repository). If a classic token is ever needed,
+store it as a GitHub **secret** (`NPM_TOKEN`) and rotate it if it may have been exposed.

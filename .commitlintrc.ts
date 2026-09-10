@@ -4,7 +4,6 @@ import { RuleConfigSeverity } from '@commitlint/types'
 const Configuration: UserConfig = {
   // [!code focus]
   extends: ['@commitlint/config-conventional'],
-  parserPreset: 'conventional-changelog-atom',
   formatter: '@commitlint/format',
   rules: {
     'type-enum': [

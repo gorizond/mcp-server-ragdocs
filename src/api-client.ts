@@ -117,16 +117,19 @@ export class ApiClient {
     // get embeddings using OpenAI Client
     if (this.openaiClient) {
       try {
-        // Do NOT pass encoding_format for OpenAI-compatible endpoints (e.g.
-        // LM Studio): the OpenAI JS client sends `encoding_format: base64` for
-        // `float`, which LM Studio ignores and returns a plain array. The client
-        // then mis-decodes it, producing a wrong-dimension vector (e.g. 192
-        // instead of 768) that Qdrant rejects with 400. When VECTOR_SIZE is set,
+        // OpenAI JS SDK v6+ defaults to `encoding_format: 'base64'` when the
+        // caller omits it (embeddings.js: "No encoding_format specified,
+        // defaulting to base64 for performance reasons"). LM Studio ignores
+        // `encoding_format` and returns a plain float array, which the SDK then
+        // mis-decodes as base64, producing a wrong-dimension vector (e.g. 192
+        // instead of 768) that Qdrant rejects with 400. Pass an explicit
+        // `encoding_format: 'float'` so the SDK returns the response as-is, and
         // request an explicit `dimensions` so the endpoint returns the exact
         // expected dimensionality.
         const response = await this.openaiClient.embeddings.create({
           model: EMBEDDING_MODEL || 'text-embedding-ada-002',
           input: text,
+          encoding_format: 'float',
           ...(VECTOR_SIZE !== undefined ? { dimensions: VECTOR_SIZE } : {})
         })
         const embedding = response.data?.[0]?.embedding || []

@@ -1,3 +1,12 @@
+## [1.1.2](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.1.1...v1.1.2) (2026-09-10)
+
+
+### Bug Fixes
+
+* make URL fetching and embedding generation robust against timeouts and wrong dimensions ([840c420](https://github.com/gorizond/mcp-server-ragdocs/commit/840c42037c1bd90e935d5bddd34f93cbc69462b0))
+* remove broken parserPreset from commitlint config ([f1b3249](https://github.com/gorizond/mcp-server-ragdocs/commit/f1b3249cc9e603e12d2db98b3dd942a80082c0f1))
+* revert package.json and CHANGELOG to 1.1.1 (clean state for OIDC release) ([1747eeb](https://github.com/gorizond/mcp-server-ragdocs/commit/1747eebc85e2472def56ff8acda177b3345aed04))
+
 ## [1.1.1](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.1.0...v1.1.1) (2026-05-07)
 
 

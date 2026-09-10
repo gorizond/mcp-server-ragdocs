@@ -158,7 +158,47 @@ export class AddDocumentationHandler extends BaseHandler {
     const page = await this.apiClient.browser.newPage()
 
     try {
-      await page.goto(url, { waitUntil: 'networkidle' })
+      // Use domcontentloaded instead of networkidle: modern sites (e.g.
+      // fleet.rancher.io) keep the network busy indefinitely, so networkidle
+      // never fires and page.goto times out. domcontentloaded is reliable and
+      // faster. Retry transient network errors (net::ERR_TIMED_OUT) a few times
+      // before giving up.
+      const MAX_RETRIES = 3
+      const RETRY_DELAY_MS = 2500
+      const NAVIGATION_TIMEOUT_MS = 45000
+
+      let lastError: unknown
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          await page.goto(url, {
+            waitUntil: 'domcontentloaded',
+            timeout: NAVIGATION_TIMEOUT_MS
+          })
+          lastError = undefined
+          break
+        } catch (error) {
+          lastError = error
+          const message = error instanceof Error ? error.message : String(error)
+          const isTransient =
+            message.includes('ERR_TIMED_OUT') ||
+            message.includes('TimeoutError') ||
+            message.includes('net::ERR_') ||
+            message.includes('ECONNRESET') ||
+            message.includes('ECONNREFUSED')
+          if (attempt < MAX_RETRIES && isTransient) {
+            console.warn(
+              `[RAGDocs] Navigation attempt ${attempt}/${MAX_RETRIES} failed for ${url} (${message}), retrying in ${RETRY_DELAY_MS}ms`
+            )
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+            continue
+          }
+          break
+        }
+      }
+      if (lastError) {
+        throw lastError
+      }
+
       const content = await page.content()
       const $ = cheerio.load(content)
 

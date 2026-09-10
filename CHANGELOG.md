@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.1.2...v1.1.3) (2026-09-10)
+
+
+### Bug Fixes
+
+* pass encoding_format float to embeddings API ([3edf044](https://github.com/gorizond/mcp-server-ragdocs/commit/3edf0447200133fc4aeb71f9cf7080ec4077b18e))
+
 ## [1.1.2](https://github.com/gorizond/mcp-server-ragdocs/compare/v1.1.1...v1.1.2) (2026-09-10)
 
 
